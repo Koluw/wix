@@ -87,7 +87,7 @@ def read_conn_string():
     currentDirectory = getcwd()
 
     buf = False
-    fileName = 'conn_string.json'
+    fileName = 'conn_string_localhost.json'
     try:
         buf = path.exists(currentDirectory + sep + fileName)
         if buf:
@@ -101,7 +101,7 @@ def read_conn_string():
         else:
             raise FileNotFoundError
     except FileNotFoundError:
-        jsonData["error"] = "FileNotExists"
+        jsonData["error"] = "FileConnectionNotExists"
     return jsonData
 
 
@@ -137,6 +137,8 @@ def sop(someDict):
 
             connection.commit()
             print('{0} has been added to DB'.format(city))
+    except :
+        print("there was a problem during connection")
     finally:
         connection.close()
         print('insert was successfuly finished')
@@ -147,19 +149,41 @@ def step_by_step():
     call of all needed functions in correct order
     :return: nothing, just call another functions
     """
-    cities = read_cities_json()
+    errors = [
+        "there were few mistakes during reading file with cities", # during reading file cities
+        "there were errors during API's work"
+    ]
+    i = 0
+    while True:
+        cities = read_cities_json()
 
-    orbital_data_stanley = collect_json(cities, 50)
+        if 'error' in cities:
+            print(errors[i])
+            break
+        i += 1
 
-    sop(orbital_data_stanley)
+        orbital_data_stanley = collect_json(cities, 1)
+        if 'error' in orbital_data_stanley:
+            print(errors[i])
+            break
 
-    # print(orbital_data_stanley)
-    # orbital_data_stanley = {'Haifa': [{'duration': 245, 'risetime': 1591279496, 'UTC': '2020-06-04 14:04:56'}, {'duration': 437, 'risetime': 1591285312, 'UTC': '2020-06-04 15:41:52'}],
-    # 'Tel_Aviv': [{'duration': 426, 'risetime': 1591273487, 'UTC': '2020-06-04 12:24:47'}, {'duration': 169, 'risetime': 1591279531, 'UTC': '2020-06-04 14:05:31'}],
-    # 'Beer_Sheva': [{'duration': 372, 'risetime': 1591285352, 'UTC': '2020-06-04 15:42:32'}, {'duration': 619, 'risetime': 1591291094, 'UTC': '2020-06-04 17:18:14'}],
-    # 'Eilat': [{'duration': 281, 'risetime': 1591285410, 'UTC': '2020-06-04 15:43:30'}, {'duration': 605, 'risetime': 1591291121, 'UTC': '2020-06-04 17:18:41'}]}
-    # sop(orbital_data_stanley) # test call
-    # print(read_url_json('32.085300', '34.781769')) # test call
+        # sop(orbital_data_stanley)
+        for city in orbital_data_stanley:
+            final_str = ''
+            for row in orbital_data_stanley[city]:
+                final_str += "('{0}', {1}, '{2}', '{3}'),".format(city, row['duration'], row['risetime'], row['UTC'])
+
+            final_str = final_str[:-1]
+            print(final_str)
+        break
+
+        # print(orbital_data_stanley)
+        # orbital_data_stanley = {'Haifa': [{'duration': 245, 'risetime': 1591279496, 'UTC': '2020-06-04 14:04:56'}, {'duration': 437, 'risetime': 1591285312, 'UTC': '2020-06-04 15:41:52'}],
+        # 'Tel_Aviv': [{'duration': 426, 'risetime': 1591273487, 'UTC': '2020-06-04 12:24:47'}, {'duration': 169, 'risetime': 1591279531, 'UTC': '2020-06-04 14:05:31'}],
+        # 'Beer_Sheva': [{'duration': 372, 'risetime': 1591285352, 'UTC': '2020-06-04 15:42:32'}, {'duration': 619, 'risetime': 1591291094, 'UTC': '2020-06-04 17:18:14'}],
+        # 'Eilat': [{'duration': 281, 'risetime': 1591285410, 'UTC': '2020-06-04 15:43:30'}, {'duration': 605, 'risetime': 1591291121, 'UTC': '2020-06-04 17:18:41'}]}
+        # sop(orbital_data_stanley) # test call
+        # print(read_url_json('32.085300', '34.781769')) # test call
 
 
 if __name__ == '__main__':
